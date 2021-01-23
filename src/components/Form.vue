@@ -18,7 +18,7 @@
       <textarea id="value" rows="3" v-model.trim="textArea"></textarea>
     </div>
 
-    <button class="btn primary" :disabled="activateAddBtn">
+    <button class="btn primary" :disabled="isFormValid">
       Добавить
     </button>
   </form>
@@ -40,7 +40,7 @@ export default {
     }
   },
   computed: {
-    activateAddBtn() {
+    isFormValid() {
       return this.textArea.length < 4;
     }
   }

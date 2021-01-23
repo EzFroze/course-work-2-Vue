@@ -1,37 +1,29 @@
 <template>
   <div class="container column">
-    <app-form @addComponent="addComponent" />
+    <form-component @addComponent="addComponent" />
     <div class="card card-w70">
-      <div v-for="comp in formComponents" :key="comp.id" class="component">
-        <component :is="comp.component" :text="comp.text" />
-        <div class="delete">
-          <button @click="deleteComponent(comp.id)">Удалить</button>
-        </div>
-      </div>
+      <resume-components
+        :form-components="formComponents"
+        @deleteComponent="deleteComponent"
+      />
     </div>
   </div>
-  <app-comments :comments="comments" @download="downloadComments" />
-  <app-loader v-if="isLoading" />
+  <comments :comments="comments" @download="downloadComments" />
+  <loader v-if="isLoading" />
 </template>
 
 <script>
-import AppLoader from "@/AppLoader";
-import AppComments from "@/AppComments";
-import AppAvatar from "@/AppAvatar";
-import AppText from "@/AppText";
-import AppForm from "@/AppForm";
-import AppTitle from "@/AppTitle";
-import AppSubtitle from "@/AppSubtitle";
+import Loader from "@/components/Loader";
+import Comments from "@/components/Comments";
+import ResumeComponents from "@/components/ResumeComponents";
+import FormComponent from "@/components/Form";
 
 export default {
   components: {
-    AppSubtitle,
-    AppTitle,
-    AppForm,
-    AppText,
-    AppAvatar,
-    AppComments,
-    AppLoader
+    ResumeComponents,
+    Comments,
+    Loader,
+    FormComponent
   },
   data() {
     return {
@@ -44,20 +36,17 @@ export default {
   methods: {
     async downloadComments() {
       this.isLoading = true;
-      const response = await fetch(
-        "https://jsonplaceholder.typicode.com/comments?_limit=42"
-      );
+      const response = await fetch(process.env.VUE_APP_COMMENTS_URL);
       this.comments = await response.json();
       this.isLoading = false;
     },
     async addComponent(text, type) {
-      const component = `app-${type}`;
       const data = {
-        component,
+        type,
         text
       };
       const response = await fetch(
-        "https://vue-with-http-8a60d-default-rtdb.firebaseio.com/components.json",
+        `${process.env.VUE_APP_FIREBASE_URL}/components.json`,
         {
           method: "POST",
           headers: {
@@ -72,7 +61,7 @@ export default {
     },
     async getComponents() {
       const response = await fetch(
-        "https://vue-with-http-8a60d-default-rtdb.firebaseio.com/components.json",
+        `${process.env.VUE_APP_FIREBASE_URL}/components.json`,
         {
           method: "GET",
           headers: {
@@ -91,15 +80,12 @@ export default {
       }
     },
     async deleteComponent(id) {
-      await fetch(
-        `https://vue-with-http-8a60d-default-rtdb.firebaseio.com/components/${id}.json`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-type": "application/json"
-          }
+      await fetch(`${process.env.VUE_APP_FIREBASE_URL}/components/${id}.json`, {
+        method: "DELETE",
+        headers: {
+          "Content-type": "application/json"
         }
-      );
+      });
       this.formComponents = this.formComponents.filter(c => c.id !== id);
     }
   },
@@ -108,15 +94,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.component {
-  position: relative;
-}
-
-.delete {
-  position: absolute;
-  right: 0;
-  top: 10px;
-}
-</style>
